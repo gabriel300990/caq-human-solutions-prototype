@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CAQ Human - Visao Agente (Shuffle) + Cliente (App) | Tech Assessment v2</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #0F0F1A; min-height: 100vh; }
+
+    .page-header { text-align: center; padding: 28px 20px 8px; }
+    .page-header h1 { font-size: 22px; font-weight: 700; color: white; margin-bottom: 4px; }
+    .page-header p { font-size: 13px; color: #7070A0; }
+    .page-header .ref { font-size: 11px; color: #505070; margin-top: 4px; }
+    .page-header .ref a { color: #8060C0; text-decoration: none; }
+
+    .nav-tabs { display: flex; gap: 8px; justify-content: center; padding: 14px 20px 20px; flex-wrap: wrap; }
+    .nav-tab { padding: 10px 24px; border: none; border-radius: 24px; background: rgba(255,255,255,0.07); color: #7070A0; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.25s; }
+    .nav-tab:hover { background: rgba(255,255,255,0.12); color: white; }
+    .nav-tab.active { background: #820AD1; color: white; }
+
+    .screen { display: none; padding: 0 20px 40px; }
+    .screen.active { display: block; }
+    .scenario-title { text-align: center; color: white; font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+    .scenario-desc { text-align: center; color: #7070A0; font-size: 12px; margin-bottom: 20px; }
+
+    .step-controls { display: flex; gap: 10px; justify-content: center; align-items: center; margin-bottom: 6px; }
+    .step-btn { padding: 8px 20px; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; background: transparent; color: #8080A0; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+    .step-btn:hover:not(:disabled) { border-color: #820AD1; color: white; }
+    .step-btn:disabled { opacity: 0.25; cursor: default; }
+    .step-info { color: white; font-size: 14px; font-weight: 600; min-width: 180px; text-align: center; }
+    .step-sub { text-align: center; color: #606080; font-size: 12px; margin-bottom: 4px; }
+    .step-dots { display: flex; gap: 5px; justify-content: center; margin-bottom: 20px; }
+    .step-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.12); cursor: pointer; transition: all 0.25s; }
+    .step-dot.active { background: #820AD1; width: 24px; border-radius: 4px; }
+
+    .side-by-side { display: flex; gap: 28px; justify-content: center; align-items: flex-start; flex-wrap: wrap; }
+    .view-badge { display: block; text-align: center; margin-bottom: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .view-badge .ab { display: inline-block; padding: 4px 12px; border-radius: 16px; }
+    .view-badge .shuffle-b { background: rgba(100,100,140,0.2); color: #A0A0C0; }
+    .view-badge .client-b { background: rgba(130,10,209,0.15); color: #C084FC; }
+
+    .connector { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0 4px; align-self: center; }
+    .conn-line { width: 1px; height: 30px; background: repeating-linear-gradient(to bottom, #404060 0px, #404060 3px, transparent 3px, transparent 6px); }
+    .conn-icon { color: #505070; font-size: 12px; }
+    .conn-text { color: #505070; font-size: 9px; writing-mode: vertical-rl; letter-spacing: 1px; }
+
+    /* ===== SHUFFLE FRAME ===== */
+    .sf { width: 680px; height: 700px; background: #F5F5F5; border-radius: 10px; overflow: hidden; box-shadow: 0 16px 48px rgba(0,0,0,0.5); border: 1px solid #ddd; display: flex; flex-direction: column; }
+    .sf-header { height: 42px; background: #FAFAFA; border-bottom: 1px solid #E5E5E5; display: flex; align-items: center; padding: 0 16px; }
+    .sf-logo { font-size: 15px; font-weight: 700; color: #333; letter-spacing: 0.5px; }
+    .sf-icons { margin-left: auto; display: flex; gap: 8px; }
+    .sf-icon { width: 26px; height: 26px; border-radius: 4px; background: #ECECEC; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #888; cursor: pointer; }
+    .sf-jobbar { height: 48px; background: #FAFAFA; border-bottom: 1px solid #E5E5E5; display: flex; align-items: center; padding: 0 16px; gap: 12px; }
+    .sf-jobbar-info { flex: 1; display: flex; align-items: center; gap: 10px; }
+    .sf-jobbar-name { font-size: 13px; font-weight: 600; color: #333; }
+    .sf-jobbar-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+    .sf-jobbar-badge.active { background: rgba(0,166,80,0.12); color: #00A650; }
+    .sf-jobbar-badge.closed { background: rgba(255,77,77,0.12); color: #FF4D4D; }
+    .sf-jobbar-queue { font-size: 11px; color: #888; }
+    .sf-jobbar-btn { padding: 7px 16px; border-radius: 20px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .sf-jobbar-btn.finish { background: #820AD1; color: white; }
+    .sf-jobbar-btn.finish:hover { background: #6A08A0; }
+    .sf-jobbar-btn.finish:disabled { background: #CCC; color: #888; cursor: default; }
+    .sf-jobbar-btn.skip { background: #ECECEC; color: #666; }
+    .sf-chat { flex: 1; display: flex; flex-direction: column; background: #F5F5F5; }
+    .sf-messages { flex: 1; padding: 16px 20px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; }
+    .cm { align-self: flex-start; max-width: 65%; }
+    .cm-bubble { background: #fff; border: 1px solid #fff; border-radius: 4px; padding: 10px 14px; font-size: 13px; line-height: 1.45; color: #000; display: flex; align-items: center; justify-content: space-between; }
+    .cm-text { white-space: pre-line; word-break: break-word; max-width: 280px; }
+    .cm-time { font-size: 11px; color: #40424A; padding-left: 12px; white-space: nowrap; }
+    .cm-author { font-size: 12px; font-weight: 400; color: #3CB9C9; margin-top: 5px; }
+    .am { align-self: flex-end; max-width: 65%; }
+    .am-bubble { background: #D8DAE0; border: 1px solid #D8DAE0; border-radius: 4px; padding: 10px 14px; font-size: 13px; line-height: 1.45; color: rgb(68,68,68); display: flex; align-items: center; justify-content: space-between; }
+    .am-text { white-space: pre-line; word-break: break-word; max-width: 280px; }
+    .am-time { font-size: 11px; color: #40424A; padding-left: 12px; white-space: nowrap; }
+    .am-author { font-size: 12px; font-weight: 400; color: #999; text-align: right; margin-top: 5px; }
+    .caq-sf { align-self: flex-end; max-width: 325px; }
+    .caq-sf-bubble { background: #D8DAE0; border: 1px solid #D8DAE0; border-radius: 4px; color: rgb(68,68,68); overflow: hidden; }
+    .caq-sf-top { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; }
+    .caq-sf-text { white-space: pre-line; word-break: break-word; font-size: 13px; line-height: 1.4; }
+    .caq-sf-time { font-size: 11px; color: #40424A; padding-left: 12px; white-space: nowrap; }
+    .caq-sf-btns { display: flex; flex-direction: row-reverse; flex-wrap: wrap; }
+    .caq-sf-btn { background: #B7BAC3; border: 1px solid #B7BAC3; border-radius: 10px; color: rgb(68,68,68); max-width: 325px; margin-left: 5px; margin-top: 4px; padding: 8px 14px; font-size: 12px; font-weight: 500; text-align: center; cursor: default; }
+    .rn { align-self: stretch; display: flex; align-items: center; justify-content: space-between; border-radius: 4px; padding: 10px 14px; margin-top: 5px; border: 1px dashed #40424A; color: #40424A; }
+    .rn-body { font-size: 13px; line-height: 1.4; }
+    .rn-qname { font-weight: 700; }
+    .rn-desc { font-size: 10px; color: #40424A; margin-top: 2px; }
+    .rn-time { font-size: 11px; color: #40424A; padding-left: 12px; white-space: nowrap; }
+    .sm { align-self: stretch; display: flex; align-items: center; justify-content: space-between; border-radius: 4px; padding: 10px 14px; margin-top: 5px; border: 1px dashed #40424A; color: #40424A; }
+    .sm-body { font-size: 13px; line-height: 1.4; }
+    .sm-time { font-size: 11px; color: #40424A; padding-left: 12px; white-space: nowrap; }
+    .sf-date { text-align: center; font-size: 12px; font-weight: 700; color: #000; margin: 10px 0; }
+    .sf-date-line { border-bottom: 1px solid #E0E0E0; margin: 0 40px 6px; }
+    .sf-input { padding: 10px 16px; background: #FAFAFA; border-top: 1px solid #E5E5E5; display: flex; gap: 8px; align-items: center; }
+    .sf-input input { flex: 1; background: white; border: 1px solid #DDD; border-radius: 20px; padding: 9px 14px; font-size: 13px; color: #333; outline: none; }
+    .sf-input input:disabled { background: #F0F0F0; color: #AAA; }
+    .sf-input-send { width: 34px; height: 34px; background: #555; border: none; border-radius: 50%; color: white; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .sf-input-send:disabled { background: #CCC; }
+
+    /* ===== PHONE FRAME (Figma-accurate) ===== */
+    .pf { width: 375px; height: 640px; background: #efefef; border-radius: 32px; overflow: hidden; box-shadow: 0 16px 48px rgba(0,0,0,0.5); border: 5px solid #222; display: flex; flex-direction: column; position: relative; }
+    .pf-statusbar { height: 44px; background: white; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+    .pf-statusbar-time { font-size: 15px; font-weight: 600; color: #000; }
+    .pf-statusbar-icons { display: flex; gap: 5px; align-items: center; }
+    .pf-statusbar-icons svg { width: 16px; height: 16px; fill: #000; }
+    .pf-signal { display: flex; gap: 1px; align-items: flex-end; }
+    .pf-signal-bar { width: 3px; background: #000; border-radius: 1px; }
+    .pf-wifi { font-size: 14px; color: #000; }
+    .pf-battery { width: 25px; height: 12px; border: 1.5px solid #000; border-radius: 3px; position: relative; }
+    .pf-battery::after { content: ''; position: absolute; right: -4px; top: 3px; width: 2px; height: 5px; background: #000; border-radius: 0 1px 1px 0; }
+    .pf-battery-fill { height: 100%; background: #000; border-radius: 1px; width: 80%; }
+
+    .pf-topbar { background: white; padding: 12px 24px 14px; display: flex; align-items: center; border-bottom: 1px solid #e0e0e0; }
+    .pf-close { font-size: 20px; color: rgba(0,0,0,0.96); cursor: pointer; font-weight: 300; margin-right: 0; line-height: 1; width: 24px; }
+    .pf-title { flex: 1; text-align: center; font-size: 18px; font-weight: 500; color: rgba(0,0,0,0.96); letter-spacing: -0.18px; }
+    .pf-title-spacer { width: 24px; }
+
+    .pf-body { flex: 1; padding: 0; display: flex; flex-direction: column; overflow-y: auto; background: #efefef; }
+    .pf-body-inner { padding: 8px 0; display: flex; flex-direction: column; }
+
+    /* Agent message bubble (Figma: white, left-aligned, rounded) */
+    .pm-feed { padding: 8px 24px; }
+    .pm-agent { padding: 8px 0 0 24px; max-width: 284px; }
+    .pm-agent-bubble { background: white; border-radius: 8px 16px 16px 16px; padding: 12px 16px; }
+    .pm-agent-name { font-size: 14px; font-weight: 500; color: rgba(0,0,0,0.96); line-height: 1.5; letter-spacing: -0.14px; margin-bottom: 0; }
+    .pm-agent-text { font-size: 14px; font-weight: 400; color: rgba(0,0,0,0.96); line-height: 1.5; letter-spacing: -0.14px; white-space: pre-line; }
+    .pm-agent-time { font-size: 12px; color: rgba(0,0,0,0.64); text-align: right; letter-spacing: -0.12px; margin-top: 2px; }
+
+    /* Client message bubble (Figma: dark overlay, right-aligned) */
+    .pm-client { padding: 8px 24px 0; display: flex; justify-content: flex-end; }
+    .pm-client-bubble { background: rgba(0,0,0,0.32); border-radius: 16px 16px 4px 16px; padding: 14px 16px 8px; }
+    .pm-client-text { font-size: 14px; font-weight: 400; color: rgba(0,0,0,0.96); line-height: 1.5; letter-spacing: -0.14px; }
+    .pm-client-time { font-size: 12px; color: rgba(0,0,0,0.64); text-align: right; letter-spacing: -0.12px; margin-top: 2px; }
+
+    /* CAQ buttons (Figma: pill-shaped, full-width within 284px) */
+    .pm-caq-btns { padding: 4px 0 0 24px; display: flex; flex-direction: column; gap: 4px; max-width: 284px; }
+    .pm-caq-btn { width: 100%; height: 40px; border-radius: 64px; border: none; font-size: 16px; font-weight: 500; letter-spacing: -0.16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .pm-caq-btn.duvidas { background: white; color: #820AD1; }
+    .pm-caq-btn.encerrar { background: white; color: rgba(0,0,0,0.96); }
+    .pm-caq-btn.encerrar.pressed { background: #d6d6d6; color: #000; }
+    .pm-caq-btn.disabled { opacity: 0.3; cursor: default; }
+
+    /* System message (Figma: divider + warning icon + text) */
+    .pm-system { padding: 8px 24px; display: flex; flex-direction: column; gap: 8px; }
+    .pm-system-divider { height: 1px; background: #e0e0e0; }
+    .pm-system-content { display: flex; gap: 16px; align-items: flex-start; }
+    .pm-system-icon { width: 24px; height: 24px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .pm-system-icon svg { width: 20px; height: 20px; }
+    .pm-system-text { font-size: 14px; color: rgba(0,0,0,0.64); line-height: 1.5; letter-spacing: -0.14px; }
+    .pm-system-time { font-size: 12px; color: rgba(0,0,0,0.64); text-align: right; letter-spacing: -0.12px; width: 284px; }
+
+    /* Phone input bar */
+    .pf-input { padding: 16px 24px; background: #efefef; display: flex; gap: 0; align-items: center; }
+    .pf-input-field { flex: 1; background: white; border: none; border-radius: 24px; padding: 12px 24px; font-size: 16px; color: rgba(0,0,0,0.96); outline: none; font-family: inherit; letter-spacing: -0.16px; }
+    .pf-input-field::placeholder { color: rgba(0,0,0,0.64); }
+    .pf-input-field:disabled { background: #e0e0e0; }
+    .pf-input-send { width: 24px; height: 24px; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-left: 12px; }
+    .pf-input-send svg { width: 24px; height: 24px; }
+
+    /* ===== tNPS overlay (Figma-accurate) ===== */
+    .tnps-screen { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 20; display: flex; flex-direction: column; }
+    .tnps-statusbar { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+    .tnps-statusbar-time { font-size: 15px; font-weight: 600; color: #000; }
+    .tnps-close { padding: 12px 24px 0; }
+    .tnps-close-btn { font-size: 20px; color: rgba(0,0,0,0.96); cursor: pointer; background: none; border: none; font-weight: 300; }
+    .tnps-body { flex: 1; padding: 16px 24px 0; overflow-y: auto; }
+    .tnps-title { font-size: 24px; font-weight: 700; color: rgba(0,0,0,0.96); line-height: 1.3; margin-bottom: 32px; }
+    .tnps-scores { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; }
+    .tnps-score { width: 44px; height: 44px; border-radius: 50%; background: #e8e8e8; border: none; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; color: rgba(0,0,0,0.96); cursor: pointer; transition: all 0.15s; font-family: inherit; }
+    .tnps-score:hover { background: #d8d8d8; }
+    .tnps-score.selected { background: #820AD1; color: white; }
+    .tnps-labels { display: flex; justify-content: space-between; font-size: 12px; color: rgba(0,0,0,0.64); margin-bottom: 32px; padding: 0 2px; }
+    .tnps-comment-label { font-size: 14px; color: rgba(0,0,0,0.96); margin-bottom: 8px; font-weight: 400; }
+    .tnps-comment-input { border: none; border-bottom: 1px solid #e0e0e0; padding: 12px 0; font-size: 16px; color: rgba(0,0,0,0.96); outline: none; width: 100%; font-family: inherit; letter-spacing: -0.16px; }
+    .tnps-comment-input::placeholder { color: rgba(0,0,0,0.32); }
+    .tnps-footer { padding: 16px 24px 32px; }
+    .tnps-submit-btn { width: 100%; padding: 18px; border: none; border-radius: 64px; font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .tnps-submit-btn.inactive { background: #e8e8e8; color: rgba(0,0,0,0.32); }
+    .tnps-submit-btn.active { background: #820AD1; color: white; }
+
+    /* tNPS question 2 */
+    .tnps-q2-title { font-size: 24px; font-weight: 700; color: rgba(0,0,0,0.96); line-height: 1.3; margin-bottom: 24px; }
+    .tnps-radio { display: flex; flex-direction: column; gap: 20px; }
+    .tnps-radio-item { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+    .tnps-radio-circle { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .tnps-radio-circle.checked { border-color: #820AD1; }
+    .tnps-radio-circle.checked::after { content: ''; width: 12px; height: 12px; border-radius: 50%; background: #820AD1; }
+    .tnps-radio-label { font-size: 16px; color: rgba(0,0,0,0.96); }
+
+    /* tNPS success */
+    .tnps-success-body { flex: 1; display: flex; flex-direction: column; align-items: flex-start; padding: 80px 24px 0; }
+    .tnps-success-icon { width: 80px; height: 80px; margin-bottom: 24px; position: relative; }
+    .tnps-success-check { width: 56px; height: 56px; background: #00A650; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: absolute; top: 0; left: 12px; z-index: 2; }
+    .tnps-success-check svg { width: 28px; height: 28px; fill: white; }
+    .tnps-success-wave { width: 60px; height: 60px; background: rgba(0,166,80,0.2); border-radius: 50%; position: absolute; top: 10px; left: 0; z-index: 1; }
+    .tnps-success-title { font-size: 28px; font-weight: 700; color: rgba(0,0,0,0.96); margin-bottom: 12px; }
+    .tnps-success-desc { font-size: 16px; color: rgba(0,0,0,0.64); line-height: 1.5; }
+    .tnps-success-footer { padding: 16px 24px 32px; }
+    .tnps-success-close { width: 100%; padding: 18px; border: none; border-radius: 64px; background: #820AD1; color: white; font-size: 16px; font-weight: 600; cursor: pointer; font-family: inherit; }
+
+    /* ===== Home overlay (Figma-accurate) ===== */
+    .nu-home { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #820AD1; z-index: 20; display: flex; flex-direction: column; overflow: hidden; }
+    .nu-home-statusbar { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+    .nu-home-statusbar-time { font-size: 15px; font-weight: 600; color: white; }
+    .nu-home-statusbar-icons { display: flex; gap: 5px; align-items: center; color: white; }
+    .nu-home-header { padding: 0 24px 16px; display: flex; align-items: center; }
+    .nu-home-avatar { width: 48px; height: 48px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; margin-right: 0; }
+    .nu-home-avatar svg { width: 28px; height: 28px; stroke: white; fill: none; }
+    .nu-home-actions { margin-left: auto; display: flex; gap: 16px; }
+    .nu-home-action-icon { width: 24px; height: 24px; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .nu-home-action-icon svg { width: 24px; height: 24px; stroke: white; fill: none; }
+    .nu-home-greeting { padding: 0 24px 20px; font-size: 18px; font-weight: 600; color: white; }
+
+    .nu-home-body { flex: 1; background: white; border-radius: 0; display: flex; flex-direction: column; overflow-y: auto; }
+    .nu-home-section { padding: 24px 24px 0; }
+    .nu-home-section-title { font-size: 16px; font-weight: 400; color: rgba(0,0,0,0.96); display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
+    .nu-home-section-title .chevron { font-size: 12px; color: rgba(0,0,0,0.64); }
+    .nu-home-section-value { font-size: 24px; font-weight: 700; color: rgba(0,0,0,0.96); margin-bottom: 16px; }
+    .nu-home-inline-actions { display: flex; gap: 8px; padding: 0 0 24px; overflow-x: auto; }
+    .nu-home-inline-action { min-width: 80px; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 8px; }
+    .nu-home-inline-action-circle { width: 48px; height: 48px; border-radius: 50%; background: #f5f5f5; display: flex; align-items: center; justify-content: center; position: relative; }
+    .nu-home-inline-action-circle svg { width: 24px; height: 24px; }
+    .nu-home-inline-action-label { font-size: 12px; color: rgba(0,0,0,0.96); text-align: center; line-height: 1.3; }
+    .nu-home-inline-action-badge { position: absolute; top: -4px; right: -8px; background: #00A650; color: white; font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 10px; }
+
+    .nu-home-pill { margin: 0 24px 16px; padding: 16px; background: #f5f5f5; border-radius: 12px; display: flex; align-items: center; gap: 12px; }
+    .nu-home-pill-icon { width: 24px; height: 24px; }
+    .nu-home-pill-text { font-size: 14px; font-weight: 500; color: rgba(0,0,0,0.96); }
+
+    .nu-home-divider { height: 1px; background: #f0f0f0; margin: 0 24px; }
+
+    .nu-home-card-section { padding: 24px; }
+    .nu-home-card-title { font-size: 16px; font-weight: 400; color: rgba(0,0,0,0.96); display: flex; align-items: center; gap: 4px; margin-bottom: 8px; }
+    .nu-home-card-subtitle { font-size: 14px; color: rgba(0,0,0,0.64); margin-bottom: 4px; }
+    .nu-home-card-value { font-size: 24px; font-weight: 700; color: rgba(0,0,0,0.96); margin-bottom: 4px; }
+    .nu-home-card-desc { font-size: 14px; color: rgba(0,0,0,0.64); }
+
+    .nu-home-tab { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 192px; height: 64px; background: rgba(0,0,0,0.96); border-radius: 32px; display: flex; align-items: center; justify-content: space-around; padding: 0 8px; margin-bottom: 8px; }
+    .nu-home-tab-item { width: 56px; height: 56px; border-radius: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .nu-home-tab-item.active { background: rgba(255,255,255,0.15); }
+    .nu-home-tab-item svg { width: 24px; height: 24px; stroke: white; fill: none; }
+
+    .sf-jobbar.highlight { background: #FFF8E1; transition: background 0.5s; }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>CAQ Human - Customer Activity Question</h1>
+  <p>Visao Agente (Shuffle) + Visao Cliente (App) &mdash; baseado no Tech Assessment v2</p>
+  <div class="ref">Ref: <a href="https://nubank.atlassian.net/wiki/spaces/TSTSB/pages/264958279827" target="_blank">Tech Assessment v2 - Chat Human Solutions</a> | <a href="https://www.figma.com/design/VEFt7hNBt5f36HJ6HwexDG/Automatic-Redirect-to-tNPS-Survey-Screen?node-id=2233-7395" target="_blank">Figma Design</a></div>
+</div>
+
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="showScreen('sc-end', this)">Encerrar Atendimento</button>
+  <button class="nav-tab" onclick="showScreen('sc-cont', this)">Ainda Tenho D&uacute;vidas</button>
+</div>
+
+<!-- CENARIO 1: ENCERRAR ATENDIMENTO -->
+<div class="screen active" id="sc-end">
+  <div class="scenario-title">Cliente encerra o atendimento via CAQ</div>
+  <div class="scenario-desc">R3: &ldquo;Encerrar atendimento&rdquo; &rarr; tNPS &rarr; Home. Job stays open for agent to close manually.</div>
+
+  <div class="step-controls">
+    <button class="step-btn" id="e-prev" onclick="eNav(-1)" disabled>&#8592; Anterior</button>
+    <span class="step-info" id="e-label"></span>
+    <button class="step-btn" id="e-next" onclick="eNav(1)">Pr&oacute;ximo &#8594;</button>
+  </div>
+  <div class="step-sub" id="e-sub"></div>
+  <div class="step-dots" id="e-dots"></div>
+
+  <div class="side-by-side">
+    <div>
+      <div class="view-badge"><span class="ab shuffle-b">&#128187; Agente &mdash; Shuffle</span></div>
+      <div class="sf">
+        <div class="sf-header"><span class="sf-logo">Shuffle</span><div class="sf-icons"><div class="sf-icon">&#128203;</div><div class="sf-icon">&#8595;</div><div class="sf-icon">&#10005;</div></div></div>
+        <div class="sf-jobbar" id="e-jb">
+          <div class="sf-jobbar-info">
+            <span class="sf-jobbar-name">Maria da Silva</span>
+            <span class="sf-jobbar-badge active" id="e-jb-badge">&#9679; Ativo</span>
+            <span class="sf-jobbar-queue">Cart&atilde;o de Cr&eacute;dito</span>
+          </div>
+          <button class="sf-jobbar-btn skip">Pular</button>
+          <button class="sf-jobbar-btn finish" id="e-jb-finish">Encerrar</button>
+        </div>
+        <div class="sf-chat">
+          <div class="sf-messages" id="e-sf-chat"></div>
+          <div class="sf-input"><input type="text" id="e-sf-in" placeholder="Enviar mensagem..."><button class="sf-input-send" id="e-sf-send">&#10148;</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="connector"><div class="conn-line"></div><span class="conn-icon">&#8596;</span><div class="conn-line"></div><span class="conn-text">Pusher</span></div>
+
+    <div>
+      <div class="view-badge"><span class="ab client-b">&#128241; Cliente &mdash; App Nubank</span></div>
+      <div class="pf" id="e-phone">
+        <div class="pf-statusbar">
+          <span class="pf-statusbar-time" id="e-pf-time">15:00</span>
+          <div class="pf-statusbar-icons">
+            <div class="pf-signal"><div class="pf-signal-bar" style="height:4px"></div><div class="pf-signal-bar" style="height:6px"></div><div class="pf-signal-bar" style="height:8px"></div><div class="pf-signal-bar" style="height:10px"></div></div>
+            <span class="pf-wifi">&#8226;</span>
+            <div class="pf-battery"><div class="pf-battery-fill"></div></div>
+          </div>
+        </div>
+        <div class="pf-topbar">
+          <span class="pf-close">&#10005;</span>
+          <span class="pf-title">Chat</span>
+          <span class="pf-title-spacer"></span>
+        </div>
+        <div class="pf-body" id="e-pf-chat"></div>
+        <div class="pf-input" id="e-pf-input">
+          <input type="text" class="pf-input-field" id="e-pf-in" placeholder="Digite sua mensagem...">
+          <button class="pf-input-send" id="e-pf-send"><svg viewBox="0 0 24 24" fill="none" stroke="#820AD1" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CENARIO 2: AINDA TENHO DUVIDAS -->
+<div class="screen" id="sc-cont">
+  <div class="scenario-title">Cliente ainda tem d&uacute;vidas via CAQ</div>
+  <div class="scenario-desc">R4: &ldquo;Ainda tenho d&uacute;vidas&rdquo; &rarr; chat stays active.</div>
+
+  <div class="step-controls">
+    <button class="step-btn" id="c-prev" onclick="cNav(-1)" disabled>&#8592; Anterior</button>
+    <span class="step-info" id="c-label"></span>
+    <button class="step-btn" id="c-next" onclick="cNav(1)">Pr&oacute;ximo &#8594;</button>
+  </div>
+  <div class="step-sub" id="c-sub"></div>
+  <div class="step-dots" id="c-dots"></div>
+
+  <div class="side-by-side">
+    <div>
+      <div class="view-badge"><span class="ab shuffle-b">&#128187; Agente &mdash; Shuffle</span></div>
+      <div class="sf">
+        <div class="sf-header"><span class="sf-logo">Shuffle</span><div class="sf-icons"><div class="sf-icon">&#128203;</div><div class="sf-icon">&#8595;</div><div class="sf-icon">&#10005;</div></div></div>
+        <div class="sf-jobbar" id="c-jb">
+          <div class="sf-jobbar-info">
+            <span class="sf-jobbar-name">Maria da Silva</span>
+            <span class="sf-jobbar-badge active" id="c-jb-badge">&#9679; Ativo</span>
+            <span class="sf-jobbar-queue">Cart&atilde;o de Cr&eacute;dito</span>
+          </div>
+          <button class="sf-jobbar-btn skip">Pular</button>
+          <button class="sf-jobbar-btn finish" id="c-jb-finish">Encerrar</button>
+        </div>
+        <div class="sf-chat">
+          <div class="sf-messages" id="c-sf-chat"></div>
+          <div class="sf-input"><input type="text" id="c-sf-in" placeholder="Enviar mensagem..."><button class="sf-input-send" id="c-sf-send">&#10148;</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="connector"><div class="conn-line"></div><span class="conn-icon">&#8596;</span><div class="conn-line"></div><span class="conn-text">Pusher</span></div>
+
+    <div>
+      <div class="view-badge"><span class="ab client-b">&#128241; Cliente &mdash; App Nubank</span></div>
+      <div class="pf" id="c-phone">
+        <div class="pf-statusbar">
+          <span class="pf-statusbar-time" id="c-pf-time">15:00</span>
+          <div class="pf-statusbar-icons">
+            <div class="pf-signal"><div class="pf-signal-bar" style="height:4px"></div><div class="pf-signal-bar" style="height:6px"></div><div class="pf-signal-bar" style="height:8px"></div><div class="pf-signal-bar" style="height:10px"></div></div>
+            <span class="pf-wifi">&#8226;</span>
+            <div class="pf-battery"><div class="pf-battery-fill"></div></div>
+          </div>
+        </div>
+        <div class="pf-topbar">
+          <span class="pf-close">&#10005;</span>
+          <span class="pf-title">Chat</span>
+          <span class="pf-title-spacer"></span>
+        </div>
+        <div class="pf-body" id="c-pf-chat"></div>
+        <div class="pf-input" id="c-pf-input">
+          <input type="text" class="pf-input-field" id="c-pf-in" placeholder="Digite sua mensagem...">
+          <button class="pf-input-send" id="c-pf-send"><svg viewBox="0 0 24 24" fill="none" stroke="#820AD1" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ========== SHUFFLE FRAGMENTS (unchanged) ========== */
+const CONV_SF = `
+  <div class="sf-date"><div class="sf-date-line"></div>Hoje</div>
+  <div class="cm-author">Maria da Silva</div>
+  <div class="cm"><div class="cm-bubble"><span class="cm-text">Oi, gostaria de saber qual a data de vencimento da minha fatura</span><span class="cm-time">15:00</span></div></div>
+  <div class="cm"><div class="cm-bubble"><span class="cm-text">E tamb\u00e9m se consigo alterar essa data</span><span class="cm-time">15:01</span></div></div>
+  <div class="rn"><div class="rn-body"><span>Fila atual: </span><span class="rn-qname">Cart\u00e3o de Cr\u00e9dito</span><div class="rn-desc">Orientar sobre data de vencimento da fatura</div></div><span class="rn-time">15:01</span></div>
+  <div class="am-author">Ana Souza</div>
+  <div class="am"><div class="am-bubble"><span class="am-text">Ol\u00e1 Maria! A data de vencimento da sua fatura atual \u00e9 dia 15 de cada m\u00eas.</span><span class="am-time">15:02</span></div></div>
+  <div class="am"><div class="am-bubble"><span class="am-text">Para alterar, v\u00e1 no app em Cart\u00e3o de Cr\u00e9dito > Ajustar data de vencimento. As op\u00e7\u00f5es s\u00e3o dias 1, 7, 15 ou 25.</span><span class="am-time">15:04</span></div></div>
+  <div class="cm-author">Maria da Silva</div>
+  <div class="cm"><div class="cm-bubble"><span class="cm-text">Ah entendi, muito obrigada!</span><span class="cm-time">15:05</span></div></div>
+  <div class="am-author">Ana Souza</div>
+  <div class="am"><div class="am-bubble"><span class="am-text">De nada! A altera\u00e7\u00e3o s\u00f3 vale a partir da pr\u00f3xima fatura. Mais alguma d\u00favida?</span><span class="am-time">15:06</span></div></div>`;
+
+function caqSF(time) {
+  return `<div class="am-author">Mensagem autom\u00e1tica</div>
+  <div class="caq-sf"><div class="caq-sf-bubble"><div class="caq-sf-top"><span class="caq-sf-text">Precisa de mais alguma informa\u00e7\u00e3o?</span><span class="caq-sf-time">${time}</span></div><div class="caq-sf-btns"><span class="caq-sf-btn">Encerrar atendimento</span><span class="caq-sf-btn">Ainda tenho d\u00favidas</span></div></div></div>`;
+}
+function customerReply(text, time) {
+  return `<div class="cm-author">Maria da Silva</div><div class="cm"><div class="cm-bubble"><span class="cm-text">${text}</span><span class="cm-time">${time}</span></div></div>`;
+}
+const FAREWELL_SF = `<div class="am-author">Mensagem autom\u00e1tica</div>
+  <div class="am"><div class="am-bubble"><span class="am-text">Foi um prazer te atender. Voc\u00ea vai receber uma notifica\u00e7\u00e3o no aplicativo para responder uma r\u00e1pida avalia\u00e7\u00e3o sobre este atendimento. Sua opini\u00e3o ajuda muito a gente a melhorar cada vez mais. Obrigado.</span><span class="am-time">15:08</span></div></div>`;
+const ACK_SF = `<div class="am-author">Mensagem autom\u00e1tica</div>
+  <div class="am"><div class="am-bubble"><span class="am-text">Escreva em poucas palavras qual \u00e9 a sua d\u00favida para continuar o seu atendimento.</span><span class="am-time">15:08</span></div></div>`;
+const SYS_CLOSED_SF = `<div class="sm"><div class="sm-body"><strong>Mensagem do sistema: </strong>Sess\u00e3o encerrada.</div><div class="sm-time">15:09</div></div>`;
+
+/* ========== PHONE FRAGMENTS (Figma-accurate) ========== */
+function agentMsg(text, time) {
+  return `<div class="pm-agent"><div class="pm-agent-bubble"><div class="pm-agent-name">Atendimento Nubank</div><div class="pm-agent-text">${text}</div><div class="pm-agent-time">${time}</div></div></div>`;
+}
+function agentMsgAuto(text, time) {
+  return `<div class="pm-agent"><div class="pm-agent-bubble"><div class="pm-agent-name">Atendimento Nubank</div><div class="pm-agent-text" style="font-size:14px">${text}</div><div class="pm-agent-time">${time}</div></div></div>`;
+}
+function clientMsg(text, time) {
+  return `<div class="pm-client"><div class="pm-client-bubble"><div class="pm-client-text">${text}</div><div class="pm-client-time">${time}</div></div></div>`;
+}
+function caqMsg(time) {
+  return `<div class="pm-agent"><div class="pm-agent-bubble"><div class="pm-agent-name">Atendimento Nubank</div><div class="pm-agent-text">Precisa de mais alguma informa\u00e7\u00e3o?</div><div class="pm-agent-time">${time}</div></div></div>`;
+}
+function caqBtns() {
+  return `<div class="pm-caq-btns"><button class="pm-caq-btn duvidas">Ainda tenho d\u00favidas</button><button class="pm-caq-btn encerrar">Encerrar o atendimento</button></div>`;
+}
+function caqBtnsEndPressed() {
+  return `<div class="pm-caq-btns"><button class="pm-caq-btn duvidas disabled">Ainda tenho d\u00favidas</button><button class="pm-caq-btn encerrar pressed">Encerrar o atendimento</button></div>`;
+}
+function caqBtnsContPressed() {
+  return `<div class="pm-caq-btns"><button class="pm-caq-btn duvidas" style="background:#820AD1;color:white">Ainda tenho d\u00favidas</button><button class="pm-caq-btn encerrar disabled">Encerrar o atendimento</button></div>`;
+}
+function farewellMsg(time) {
+  return agentMsgAuto('Esperamos ter te ajudado!\n\nEm alguns minutos, voc\u00ea receber\u00e1 uma notifica\u00e7\u00e3o para deixar sua opini\u00e3o sobre o nosso atendimento.', time);
+}
+function systemMsg(time) {
+  return `<div class="pm-system"><div class="pm-system-divider"></div><div class="pm-system-content"><div class="pm-system-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(0,0,0,0.64)" stroke-width="1.5"/><path d="M12 8v4" stroke="rgba(0,0,0,0.64)" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="rgba(0,0,0,0.64)"/></svg></div><div class="pm-system-text">Se ainda precisar de ajuda, basta mandar uma nova mensagem.</div></div><div class="pm-system-time">${time}</div><div class="pm-system-divider"></div></div>`;
+}
+function ackMsg(time) {
+  return agentMsgAuto('Escreva em poucas palavras qual \u00e9 a sua d\u00favida para continuar o seu atendimento.', time);
+}
+
+const CONV_PF = `<div class="pf-body-inner">
+  ${agentMsg('Mensagem autom\u00e1tica', '15:15')}
+  ${clientMsg('Gerar extrato de transa\u00e7\u00f5es', '15:00')}
+  ${agentMsg('Voc\u00ea pode solicitar o extrato de transa\u00e7\u00f5es da conta no seu aplicativo!\n\nAcesse "Pedir fatura", escolha o m\u00eas desejado e clique em "Exportar Extrato"\n\nO documento ser\u00e1 enviado para o seu email no formatos PDF, CSV e OFX.', '15:15')}
+</div>`;
+
+const CONV_PF_SIMPLE = `<div class="pf-body-inner">
+  ${agentMsg('Ol\u00e1! Como posso te ajudar?', '15:00')}
+  ${clientMsg('Oi, gostaria de saber qual a data de vencimento da minha fatura', '15:00')}
+  ${clientMsg('E tamb\u00e9m se consigo alterar essa data', '15:01')}
+  ${agentMsg('A data de vencimento da sua fatura atual \u00e9 dia 15 de cada m\u00eas.', '15:02')}
+  ${agentMsg('Para alterar, v\u00e1 no app em Cart\u00e3o de Cr\u00e9dito > Ajustar data de vencimento. As op\u00e7\u00f5es s\u00e3o dias 1, 7, 15 ou 25.', '15:04')}
+  ${clientMsg('Ah entendi, muito obrigada!', '15:05')}
+  ${agentMsg('De nada! A altera\u00e7\u00e3o s\u00f3 vale a partir da pr\u00f3xima fatura. Mais alguma d\u00favida?', '15:06')}
+</div>`;
+
+/* ========== DATA: ENCERRAR ATENDIMENTO ========== */
+const E = [
+  {
+    label: 'Etapa 1 de 6', sub: 'Chat ativo \u2014 conversa com agente humano', time: '15:06',
+    sf: CONV_SF,
+    pf: CONV_PF_SIMPLE,
+    sfIn: true, pfIn: true, jb: 'active', jbText: '&#9679; Ativo',
+  },
+  {
+    label: 'Etapa 2 de 6', sub: 'CAQ enviada automaticamente (1 min inatividade)', time: '15:07',
+    sf: CONV_SF + caqSF('15:07'),
+    pf: `<div class="pf-body-inner">
+      ${agentMsg('De nada! A altera\u00e7\u00e3o s\u00f3 vale a partir da pr\u00f3xima fatura. Mais alguma d\u00favida?', '15:06')}
+      ${caqMsg('15:07')}
+      ${caqBtns()}
+    </div>`,
+    sfIn: true, pfIn: true, jb: 'active', jbText: '&#9679; Ativo',
+  },
+  {
+    label: 'Etapa 3 de 6', sub: 'Cliente clica "Encerrar o atendimento" \u2014 bot\u00e3o fica pressionado', time: '15:08',
+    sf: CONV_SF + caqSF('15:07') + customerReply('Encerrar atendimento', '15:08'),
+    pf: `<div class="pf-body-inner">
+      ${agentMsg('De nada! A altera\u00e7\u00e3o s\u00f3 vale a partir da pr\u00f3xima fatura. Mais alguma d\u00favida?', '15:06')}
+      ${caqMsg('15:07')}
+      ${caqBtnsEndPressed()}
+      ${clientMsg('Encerrar atendimento', '15:00')}
+    </div>`,
+    sfIn: true, pfIn: false, jb: 'active', jbText: '&#9679; Ativo',
+  },
+  {
+    label: 'Etapa 4 de 6', sub: 'Pesquisa tNPS (redirect direto via deeplink)', time: '15:09',
+    sf: `${caqSF('15:07')}${customerReply('Encerrar atendimento', '15:08')}${FAREWELL_SF}${SYS_CLOSED_SF}`,
+    pf: '',
+    sfIn: false, pfIn: false, jb: 'closed', jbText: '&#9679; Encerrado', overlay: 'tnps',
+  },
+  {
+    label: 'Etapa 5 de 6', sub: 'Resposta enviada com sucesso!', time: '15:10',
+    sf: `${caqSF('15:07')}${customerReply('Encerrar atendimento', '15:08')}${FAREWELL_SF}${SYS_CLOSED_SF}`,
+    pf: '',
+    sfIn: false, pfIn: false, jb: 'closed', jbText: '&#9679; Encerrado', overlay: 'tnps-success',
+  },
+  {
+    label: 'Etapa 6 de 6', sub: 'Cliente direcionado para Home do app', time: '15:11',
+    sf: `${caqSF('15:07')}${customerReply('Encerrar atendimento', '15:08')}${FAREWELL_SF}${SYS_CLOSED_SF}`,
+    pf: '',
+    sfIn: false, pfIn: false, jb: 'closed', jbText: '&#9679; Encerrado', overlay: 'home',
+  },
+];
+
+let eIdx = 0;
+
+function eRender(i) {
+  const s = E[i];
+  document.getElementById('e-label').textContent = s.label;
+  document.getElementById('e-sub').innerHTML = s.sub;
+  document.getElementById('e-pf-time').textContent = s.time;
+  document.getElementById('e-sf-chat').innerHTML = s.sf;
+  document.getElementById('e-pf-chat').innerHTML = s.pf;
+  document.getElementById('e-sf-in').disabled = !s.sfIn;
+  document.getElementById('e-sf-send').disabled = !s.sfIn;
+  document.getElementById('e-sf-in').placeholder = s.sfIn ? 'Enviar mensagem...' : 'Chat encerrado';
+  document.getElementById('e-pf-in').disabled = !s.pfIn;
+  document.getElementById('e-pf-send').style.opacity = s.pfIn ? '1' : '0.3';
+  document.getElementById('e-pf-in').placeholder = s.pfIn ? 'Digite sua mensagem...' : '';
+  document.getElementById('e-pf-input').style.display = s.overlay ? 'none' : 'flex';
+  document.getElementById('e-prev').disabled = i === 0;
+  document.getElementById('e-next').disabled = i === E.length - 1;
+
+  const badge = document.getElementById('e-jb-badge');
+  badge.className = 'sf-jobbar-badge ' + s.jb;
+  badge.innerHTML = s.jbText;
+  document.getElementById('e-jb-finish').disabled = s.jb === 'closed';
+
+  const phone = document.getElementById('e-phone');
+  phone.querySelectorAll('.tnps-screen,.nu-home').forEach(e => e.remove());
+  if (s.overlay === 'tnps') addTnps(phone);
+  if (s.overlay === 'tnps-success') addTnpsSuccess(phone);
+  if (s.overlay === 'home') addHome(phone);
+
+  let h = '';
+  for (let j = 0; j < E.length; j++) h += `<div class="step-dot${j===i?' active':''}" onclick="eGo(${j})"></div>`;
+  document.getElementById('e-dots').innerHTML = h;
+
+  document.getElementById('e-sf-chat').scrollTop = 99999;
+  document.getElementById('e-pf-chat').scrollTop = 99999;
+}
+function eNav(d) { eIdx = Math.max(0, Math.min(E.length-1, eIdx+d)); eRender(eIdx); }
+function eGo(i) { eIdx = i; eRender(i); }
+
+/* ========== DATA: AINDA TENHO DUVIDAS ========== */
+const C = [
+  {
+    label: 'Etapa 1 de 5', sub: 'Chat ativo \u2014 conversa com agente humano', time: '15:06',
+    sf: CONV_SF,
+    pf: CONV_PF_SIMPLE,
+    sfIn: true, pfIn: true, jb: 'active', jbText: '&#9679; Ativo',
+  },
+  {
+    label: 'Etapa 2 de 5', sub: 'CAQ enviada automaticamente (1 min inatividade)', time: '15:07',
+    sf: CONV_SF + caqSF('15:07'),
+    pf: `<div class="pf-body-inner">
+      ${agentMsg('De nada! A altera\u00e7\u00e3o s\u00f3 vale a partir da pr\u00f3xima fatura. Mais alguma d\u00favida?', '15:06')}
+      ${caqMsg('15:07')}
+      ${caqBtns()}
+    </div>`,
+    sfIn: true, pfIn: true, jb: 'active', jbText: '&#9679; Ativo',
+  },
+  {
+    label: 'Etapa 3 de 5', sub: 'Cliente clica "Ainda tenho d\u00favidas" \u2014 chat continua (R4)', time: '15:08',
+    sf: `<div class="am-author">Ana Souza</div>
+      <div class="am"><div class="am-bubble"><span class="am-text">De nada! A altera\u00e7\u00e3o s\u00f3 vale a partir da pr\u00f3xima fatura. Mais alguma d\u00favida?</span><span class="am-time">15:06</span></div></div>
+      ${caqSF('15:07')}
+      ${customerReply('Ainda tenho d\u00favidas', '15:08')}
+      ${ACK_SF}`,
+    pf: `<div class="pf-body-inner">
+      ${agentMsg('De nada! A altera\u00e7\u00e3o s\u00f3 vale a partir da pr\u00f3xima fatura. Mais alguma d\u00favida?', '15:06')}
+      ${caqMsg('15:07')}
+      ${caqBtnsContPressed()}
+      ${clientMsg('Ainda tenho d\u00favidas', '15:08')}
+      ${ackMsg('15:08')}
+    </div>`,
+    sfIn: true, pfIn: true, jb: 'active', jbText: '&#9679; Ativo',
+  },
+  {
+    label: 'Etapa 4 de 5', sub: 'Cliente envia nova d\u00favida \u2014 conversa continua', time: '15:12',
+    sf: `${caqSF('15:07')}
+      ${customerReply('Ainda tenho d\u00favidas', '15:08')}
+      ${ACK_SF}
+      <div class="cm-author">Maria da Silva</div>
+      <div class="cm"><div class="cm-bubble"><span class="cm-text">Como fa\u00e7o para pagar a fatura por Pix?</span><span class="cm-time">15:09</span></div></div>
+      <div class="am-author">Ana Souza</div>
+      <div class="am"><div class="am-bubble"><span class="am-text">V\u00e1 em Cart\u00e3o de Cr\u00e9dito > Pagar Fatura > Pix. O QR Code ser\u00e1 gerado automaticamente.</span><span class="am-time">15:10</span></div></div>
+      <div class="cm"><div class="cm-bubble"><span class="cm-text">Consegui, muito obrigada!</span><span class="cm-time">15:12</span></div></div>`,
+    pf: `<div class="pf-body-inner">
+      ${caqMsg('15:07')}
+      ${caqBtnsContPressed()}
+      ${clientMsg('Ainda tenho d\u00favidas', '15:08')}
+      ${ackMsg('15:08')}
+      ${clientMsg('Como fa\u00e7o para pagar a fatura por Pix?', '15:09')}
+      ${agentMsg('V\u00e1 em Cart\u00e3o de Cr\u00e9dito > Pagar Fatura > Pix. O QR Code ser\u00e1 gerado automaticamente.', '15:10')}
+      ${clientMsg('Consegui, muito obrigada!', '15:12')}
+    </div>`,
+    sfIn: true, pfIn: true, jb: 'active', jbText: '&#9679; Ativo',
+  },
+  {
+    label: 'Etapa 5 de 5', sub: 'CAQ #2 enviada ap\u00f3s nova inatividade (R2: max 3 por job)', time: '15:13',
+    sf: `<div class="cm"><div class="cm-bubble"><span class="cm-text">Como fa\u00e7o para pagar a fatura por Pix?</span><span class="cm-time">15:09</span></div></div>
+      <div class="am-author">Ana Souza</div>
+      <div class="am"><div class="am-bubble"><span class="am-text">V\u00e1 em Cart\u00e3o de Cr\u00e9dito > Pagar Fatura > Pix. O QR Code ser\u00e1 gerado automaticamente.</span><span class="am-time">15:10</span></div></div>
+      <div class="cm"><div class="cm-bubble"><span class="cm-text">Consegui, muito obrigada!</span><span class="cm-time">15:12</span></div></div>
+      <div class="am-author">Ana Souza</div>
+      <div class="am"><div class="am-bubble"><span class="am-text">Que \u00f3timo! Fico feliz em ajudar.</span><span class="am-time">15:12</span></div></div>
+      ${caqSF('15:13')}`,
+    pf: `<div class="pf-body-inner">
+      ${clientMsg('Consegui, muito obrigada!', '15:12')}
+      ${agentMsg('Que \u00f3timo! Fico feliz em ajudar.', '15:12')}
+      ${caqMsg('15:13')}
+      ${caqBtns()}
+    </div>`,
+    sfIn: true, pfIn: true, jb: 'active', jbText: '&#9679; Ativo',
+  },
+];
+
+let cIdx = 0;
+
+function cRender(i) {
+  const s = C[i];
+  document.getElementById('c-label').textContent = s.label;
+  document.getElementById('c-sub').innerHTML = s.sub;
+  document.getElementById('c-pf-time').textContent = s.time;
+  document.getElementById('c-sf-chat').innerHTML = s.sf;
+  document.getElementById('c-pf-chat').innerHTML = s.pf;
+  document.getElementById('c-sf-in').disabled = !s.sfIn;
+  document.getElementById('c-sf-send').disabled = !s.sfIn;
+  document.getElementById('c-pf-in').disabled = !s.pfIn;
+  document.getElementById('c-pf-send').style.opacity = s.pfIn ? '1' : '0.3';
+  document.getElementById('c-prev').disabled = i === 0;
+  document.getElementById('c-next').disabled = i === C.length - 1;
+
+  const badge = document.getElementById('c-jb-badge');
+  badge.className = 'sf-jobbar-badge ' + s.jb;
+  badge.innerHTML = s.jbText;
+  document.getElementById('c-jb-finish').disabled = s.jb === 'closed';
+
+  let h = '';
+  for (let j = 0; j < C.length; j++) h += `<div class="step-dot${j===i?' active':''}" onclick="cGo(${j})"></div>`;
+  document.getElementById('c-dots').innerHTML = h;
+
+  document.getElementById('c-sf-chat').scrollTop = 99999;
+  document.getElementById('c-pf-chat').scrollTop = 99999;
+}
+function cNav(d) { cIdx = Math.max(0, Math.min(C.length-1, cIdx+d)); cRender(cIdx); }
+function cGo(i) { cIdx = i; cRender(i); }
+
+/* ========== OVERLAYS ========== */
+function addTnps(phone) {
+  const d = document.createElement('div'); d.className = 'tnps-screen';
+  d.innerHTML = `
+    <div class="tnps-statusbar">
+      <span class="tnps-statusbar-time">11:08</span>
+      <div class="pf-statusbar-icons">
+        <div class="pf-signal"><div class="pf-signal-bar" style="height:4px"></div><div class="pf-signal-bar" style="height:6px"></div><div class="pf-signal-bar" style="height:8px"></div><div class="pf-signal-bar" style="height:10px"></div></div>
+        <span class="pf-wifi">&#8226;</span>
+        <div class="pf-battery"><div class="pf-battery-fill"></div></div>
+      </div>
+    </div>
+    <div class="tnps-close"><button class="tnps-close-btn">&#10005;</button></div>
+    <div class="tnps-body">
+      <div class="tnps-title">Conforme seu \u00faltimo atendimento, o quanto voc\u00ea recomendaria o Nubank para um amigo?</div>
+      <div class="tnps-scores">
+        <button class="tnps-score">0</button><button class="tnps-score">1</button><button class="tnps-score">2</button><button class="tnps-score">3</button><button class="tnps-score">4</button><button class="tnps-score">5</button>
+        <button class="tnps-score">6</button><button class="tnps-score selected">7</button><button class="tnps-score">8</button><button class="tnps-score">9</button><button class="tnps-score">10</button>
+      </div>
+      <div class="tnps-labels"><span>0 - Nada prov\u00e1vel</span><span>10 - Muito prov\u00e1vel</span></div>
+      <div class="tnps-comment-label">O que te levou a escolher essa nota?</div>
+      <input class="tnps-comment-input" type="text" placeholder="Deixe aqui seu coment\u00e1rio">
+    </div>
+    <div class="tnps-footer"><button class="tnps-submit-btn inactive">Enviar</button></div>`;
+  phone.appendChild(d);
+  d.querySelectorAll('.tnps-score').forEach(b => {
+    b.addEventListener('click', () => {
+      d.querySelectorAll('.tnps-score').forEach(x => x.classList.remove('selected'));
+      b.classList.add('selected');
+    });
+  });
+}
+
+function addTnpsSuccess(phone) {
+  const d = document.createElement('div'); d.className = 'tnps-screen';
+  d.innerHTML = `
+    <div class="tnps-statusbar">
+      <span class="tnps-statusbar-time">19:10</span>
+      <div class="pf-statusbar-icons">
+        <div class="pf-signal"><div class="pf-signal-bar" style="height:4px"></div><div class="pf-signal-bar" style="height:6px"></div><div class="pf-signal-bar" style="height:8px"></div><div class="pf-signal-bar" style="height:10px"></div></div>
+        <span class="pf-wifi">&#8226;</span>
+        <div class="pf-battery"><div class="pf-battery-fill"></div></div>
+      </div>
+    </div>
+    <div class="tnps-close"><button class="tnps-close-btn">&#10005;</button></div>
+    <div class="tnps-success-body">
+      <div class="tnps-success-icon"><div class="tnps-success-wave"></div><div class="tnps-success-check"><svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/></svg></div></div>
+      <div class="tnps-success-title">Resposta enviada!</div>
+      <div class="tnps-success-desc">Agradecemos a sua ajuda para juntos construirmos um produto melhor.</div>
+    </div>
+    <div class="tnps-success-footer"><button class="tnps-success-close">Fechar</button></div>`;
+  phone.appendChild(d);
+}
+
+function addHome(phone) {
+  const d = document.createElement('div'); d.className = 'nu-home';
+  d.innerHTML = `
+    <div class="nu-home-statusbar">
+      <span class="nu-home-statusbar-time">19:10</span>
+      <div class="nu-home-statusbar-icons">
+        <div class="pf-signal"><div class="pf-signal-bar" style="height:4px;background:white"></div><div class="pf-signal-bar" style="height:6px;background:white"></div><div class="pf-signal-bar" style="height:8px;background:white"></div><div class="pf-signal-bar" style="height:10px;background:white"></div></div>
+        <div class="pf-battery" style="border-color:white"><div class="pf-battery-fill" style="background:white"></div></div>
+      </div>
+    </div>
+    <div class="nu-home-header">
+      <div class="nu-home-avatar"><svg viewBox="0 0 24 24" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg></div>
+      <div class="nu-home-actions">
+        <div class="nu-home-action-icon"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <div class="nu-home-action-icon"><svg viewBox="0 0 24 24" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="0.5" fill="white"/></svg></div>
+        <div class="nu-home-action-icon"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></div>
+      </div>
+    </div>
+    <div class="nu-home-greeting">Ol\u00e1, Voc\u00ea!</div>
+    <div class="nu-home-body">
+      <div class="nu-home-section">
+        <div class="nu-home-section-title">Saldo em conta <span class="chevron">&#8250;</span></div>
+        <div class="nu-home-section-value">R$ 80,00</div>
+      </div>
+      <div class="nu-home-inline-actions">
+        <div class="nu-home-inline-action"><div class="nu-home-inline-action-circle"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5"><path d="M7 17l9.2-9.2M17 17V8h-9"/></svg></div><div class="nu-home-inline-action-label">\u00c1rea Pix e Transferir</div></div>
+        <div class="nu-home-inline-action"><div class="nu-home-inline-action-circle"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div><div class="nu-home-inline-action-label">Pagar</div></div>
+        <div class="nu-home-inline-action"><div class="nu-home-inline-action-circle"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="nu-home-inline-action-label">Pegar emprestado</div><div class="nu-home-inline-action-badge" style="position:relative;top:-2px">R$ 8.000</div></div>
+        <div class="nu-home-inline-action"><div class="nu-home-inline-action-circle"><svg viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg></div><div class="nu-home-inline-action-label">Recarga de celular</div></div>
+      </div>
+      <div class="nu-home-pill"><span class="nu-home-pill-text">Meus cart\u00f5es</span></div>
+      <div class="nu-home-divider"></div>
+      <div class="nu-home-card-section">
+        <div class="nu-home-card-title">Cart\u00e3o de cr\u00e9dito <span class="chevron">&#8250;</span></div>
+        <div class="nu-home-card-subtitle">Fatura atual</div>
+        <div class="nu-home-card-value">R$ 1.094,80</div>
+      </div>
+      <div class="nu-home-divider"></div>
+      <div class="nu-home-card-section">
+        <div class="nu-home-card-title">Empr\u00e9stimo <span class="chevron">&#8250;</span></div>
+        <div class="nu-home-card-desc">Valor dispon\u00edvel de at\u00e9 R$ 25.000,00</div>
+      </div>
+    </div>
+    <div class="nu-home-tab">
+      <div class="nu-home-tab-item active"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M7 17l9.2-9.2M17 17V8h-9"/></svg></div>
+      <div class="nu-home-tab-item"><svg viewBox="0 0 24 24" stroke-width="1.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+      <div class="nu-home-tab-item"><svg viewBox="0 0 24 24" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg></div>
+    </div>`;
+  phone.appendChild(d);
+}
+
+/* ========== SCREEN SWITCH + INIT ========== */
+function showScreen(id, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+eRender(0);
+cRender(0);
+</script>
+</body>
+</html>
