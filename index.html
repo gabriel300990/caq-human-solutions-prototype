@@ -256,6 +256,7 @@
 <div class="nav-tabs">
   <button class="nav-tab active" onclick="showScreen('sc-end', this)">Encerrar Atendimento</button>
   <button class="nav-tab" onclick="showScreen('sc-cont', this)">Ainda Tenho D&uacute;vidas</button>
+  <button class="nav-tab" onclick="showScreen('sc-ign', this)">CAQ Ignorada</button>
 </div>
 
 <!-- CENARIO 1: ENCERRAR ATENDIMENTO -->
@@ -382,6 +383,68 @@
   </div>
 </div>
 
+<!-- CENARIO 3: CAQ IGNORADA -->
+<div class="screen" id="sc-ign">
+  <div class="scenario-title">Cliente ignora a CAQ e continua no chat</div>
+  <div class="scenario-desc">Cliente n&atilde;o clica em nenhuma op&ccedil;&atilde;o da CAQ &mdash; envia nova mensagem diretamente &rarr; conversa continua.</div>
+
+  <div class="step-controls">
+    <button class="step-btn" id="g-prev" onclick="gNav(-1)" disabled>&#8592; Anterior</button>
+    <span class="step-info" id="g-label"></span>
+    <button class="step-btn" id="g-next" onclick="gNav(1)">Pr&oacute;ximo &#8594;</button>
+  </div>
+  <div class="step-sub" id="g-sub"></div>
+  <div class="step-dots" id="g-dots"></div>
+
+  <div class="side-by-side">
+    <div>
+      <div class="view-badge"><span class="ab shuffle-b">&#128187; Agente &mdash; Shuffle</span></div>
+      <div class="sf">
+        <div class="sf-header"><span class="sf-logo">Shuffle</span><div class="sf-icons"><div class="sf-icon">&#128203;</div><div class="sf-icon">&#8595;</div><div class="sf-icon">&#10005;</div></div></div>
+        <div class="sf-jobbar" id="g-jb">
+          <div class="sf-jobbar-info">
+            <span class="sf-jobbar-name">Maria da Silva</span>
+            <span class="sf-jobbar-badge active" id="g-jb-badge">&#9679; Ativo</span>
+            <span class="sf-jobbar-queue">Cart&atilde;o de Cr&eacute;dito</span>
+          </div>
+          <button class="sf-jobbar-btn skip">Pular</button>
+          <button class="sf-jobbar-btn finish" id="g-jb-finish">Encerrar</button>
+        </div>
+        <div class="sf-chat">
+          <div class="sf-messages" id="g-sf-chat"></div>
+          <div class="sf-input"><input type="text" id="g-sf-in" placeholder="Enviar mensagem..."><button class="sf-input-send" id="g-sf-send">&#10148;</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="connector"><div class="conn-line"></div><span class="conn-icon">&#8596;</span><div class="conn-line"></div><span class="conn-text">Pusher</span></div>
+
+    <div>
+      <div class="view-badge"><span class="ab client-b">&#128241; Cliente &mdash; App Nubank</span></div>
+      <div class="pf" id="g-phone">
+        <div class="pf-statusbar">
+          <span class="pf-statusbar-time" id="g-pf-time">15:00</span>
+          <div class="pf-statusbar-icons">
+            <div class="pf-signal"><div class="pf-signal-bar" style="height:4px"></div><div class="pf-signal-bar" style="height:6px"></div><div class="pf-signal-bar" style="height:8px"></div><div class="pf-signal-bar" style="height:10px"></div></div>
+            <span class="pf-wifi">&#8226;</span>
+            <div class="pf-battery"><div class="pf-battery-fill"></div></div>
+          </div>
+        </div>
+        <div class="pf-topbar">
+          <span class="pf-close">&#10005;</span>
+          <span class="pf-title">Chat</span>
+          <span class="pf-title-spacer"></span>
+        </div>
+        <div class="pf-body" id="g-pf-chat"></div>
+        <div class="pf-input" id="g-pf-input">
+          <input type="text" class="pf-input-field" id="g-pf-in" placeholder="Digite sua mensagem...">
+          <button class="pf-input-send" id="g-pf-send"><svg viewBox="0 0 24 24" fill="none" stroke="#820AD1" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ========== SHUFFLE FRAGMENTS (unchanged) ========== */
 const CONV_SF = `
@@ -432,6 +495,9 @@ function caqBtnsEndPressed() {
 }
 function caqBtnsContPressed() {
   return `<div class="pm-caq-btns"><button class="pm-caq-btn duvidas" style="background:#820AD1;color:white">Ainda tenho d\u00favidas</button><button class="pm-caq-btn encerrar disabled">Encerrar o atendimento</button></div>`;
+}
+function caqBtnsIgnored() {
+  return `<div class="pm-caq-btns"><button class="pm-caq-btn duvidas disabled">Ainda tenho d\u00favidas</button><button class="pm-caq-btn encerrar disabled">Encerrar o atendimento</button></div>`;
 }
 function farewellMsg(time) {
   return agentMsgAuto('Esperamos ter te ajudado!\n\nEm alguns minutos, voc\u00ea receber\u00e1 uma notifica\u00e7\u00e3o para deixar sua opini\u00e3o sobre o nosso atendimento.', time);
@@ -653,6 +719,99 @@ function cRender(i) {
 function cNav(d) { cIdx = Math.max(0, Math.min(C.length-1, cIdx+d)); cRender(cIdx); }
 function cGo(i) { cIdx = i; cRender(i); }
 
+/* ========== DATA: CAQ IGNORADA ========== */
+const G = [
+  {
+    label: 'Etapa 1 de 5', sub: 'Chat ativo \u2014 conversa com agente humano', time: '15:06',
+    sf: CONV_SF,
+    pf: CONV_PF_SIMPLE,
+    sfIn: true, pfIn: true, jb: 'active', jbText: '&#9679; Ativo',
+  },
+  {
+    label: 'Etapa 2 de 5', sub: 'CAQ enviada automaticamente (1 min inatividade)', time: '15:07',
+    sf: CONV_SF + caqSF('15:07'),
+    pf: `<div class="pf-body-inner">
+      ${agentMsg('De nada! A altera\u00e7\u00e3o s\u00f3 vale a partir da pr\u00f3xima fatura. Mais alguma d\u00favida?', '15:06')}
+      ${caqMsg('15:07')}
+      ${caqBtns()}
+    </div>`,
+    sfIn: true, pfIn: true, jb: 'active', jbText: '&#9679; Ativo',
+  },
+  {
+    label: 'Etapa 3 de 5', sub: 'Cliente ignora a CAQ e envia nova mensagem diretamente', time: '15:09',
+    sf: CONV_SF + caqSF('15:07') + customerReply('Ah, mais uma coisa: consigo gerar um boleto da fatura?', '15:09'),
+    pf: `<div class="pf-body-inner">
+      ${agentMsg('De nada! A altera\u00e7\u00e3o s\u00f3 vale a partir da pr\u00f3xima fatura. Mais alguma d\u00favida?', '15:06')}
+      ${caqMsg('15:07')}
+      ${caqBtnsIgnored()}
+      ${clientMsg('Ah, mais uma coisa: consigo gerar um boleto da fatura?', '15:09')}
+    </div>`,
+    sfIn: true, pfIn: true, jb: 'active', jbText: '&#9679; Ativo',
+  },
+  {
+    label: 'Etapa 4 de 5', sub: 'Agente responde \u2014 conversa continua normalmente', time: '15:11',
+    sf: `${caqSF('15:07')}
+      ${customerReply('Ah, mais uma coisa: consigo gerar um boleto da fatura?', '15:09')}
+      <div class="am-author">Ana Souza</div>
+      <div class="am"><div class="am-bubble"><span class="am-text">Sim! V\u00e1 em Cart\u00e3o de Cr\u00e9dito > Pagar Fatura > Boleto. Ele ser\u00e1 gerado automaticamente.</span><span class="am-time">15:10</span></div></div>
+      <div class="cm-author">Maria da Silva</div>
+      <div class="cm"><div class="cm-bubble"><span class="cm-text">Perfeito, consegui! Obrigada pela ajuda!</span><span class="cm-time">15:11</span></div></div>`,
+    pf: `<div class="pf-body-inner">
+      ${caqMsg('15:07')}
+      ${caqBtnsIgnored()}
+      ${clientMsg('Ah, mais uma coisa: consigo gerar um boleto da fatura?', '15:09')}
+      ${agentMsg('Sim! V\u00e1 em Cart\u00e3o de Cr\u00e9dito > Pagar Fatura > Boleto. Ele ser\u00e1 gerado automaticamente.', '15:10')}
+      ${clientMsg('Perfeito, consegui! Obrigada pela ajuda!', '15:11')}
+    </div>`,
+    sfIn: true, pfIn: true, jb: 'active', jbText: '&#9679; Ativo',
+  },
+  {
+    label: 'Etapa 5 de 5', sub: 'Nova CAQ (#2) enviada ap\u00f3s inatividade \u2014 conversa continua', time: '15:12',
+    sf: `<div class="cm"><div class="cm-bubble"><span class="cm-text">Perfeito, consegui! Obrigada pela ajuda!</span><span class="cm-time">15:11</span></div></div>
+      <div class="am-author">Ana Souza</div>
+      <div class="am"><div class="am-bubble"><span class="am-text">De nada, Maria! Qualquer d\u00favida, estou aqui.</span><span class="am-time">15:11</span></div></div>
+      ${caqSF('15:12')}`,
+    pf: `<div class="pf-body-inner">
+      ${clientMsg('Perfeito, consegui! Obrigada pela ajuda!', '15:11')}
+      ${agentMsg('De nada, Maria! Qualquer d\u00favida, estou aqui.', '15:11')}
+      ${caqMsg('15:12')}
+      ${caqBtns()}
+    </div>`,
+    sfIn: true, pfIn: true, jb: 'active', jbText: '&#9679; Ativo',
+  },
+];
+
+let gIdx = 0;
+
+function gRender(i) {
+  const s = G[i];
+  document.getElementById('g-label').textContent = s.label;
+  document.getElementById('g-sub').innerHTML = s.sub;
+  document.getElementById('g-pf-time').textContent = s.time;
+  document.getElementById('g-sf-chat').innerHTML = s.sf;
+  document.getElementById('g-pf-chat').innerHTML = s.pf;
+  document.getElementById('g-sf-in').disabled = !s.sfIn;
+  document.getElementById('g-sf-send').disabled = !s.sfIn;
+  document.getElementById('g-pf-in').disabled = !s.pfIn;
+  document.getElementById('g-pf-send').style.opacity = s.pfIn ? '1' : '0.3';
+  document.getElementById('g-prev').disabled = i === 0;
+  document.getElementById('g-next').disabled = i === G.length - 1;
+
+  const badge = document.getElementById('g-jb-badge');
+  badge.className = 'sf-jobbar-badge ' + s.jb;
+  badge.innerHTML = s.jbText;
+  document.getElementById('g-jb-finish').disabled = s.jb === 'closed';
+
+  let h = '';
+  for (let j = 0; j < G.length; j++) h += `<div class="step-dot${j===i?' active':''}" onclick="gGo(${j})"></div>`;
+  document.getElementById('g-dots').innerHTML = h;
+
+  document.getElementById('g-sf-chat').scrollTop = 99999;
+  document.getElementById('g-pf-chat').scrollTop = 99999;
+}
+function gNav(d) { gIdx = Math.max(0, Math.min(G.length-1, gIdx+d)); gRender(gIdx); }
+function gGo(i) { gIdx = i; gRender(i); }
+
 /* ========== OVERLAYS ========== */
 function addTnps(phone) {
   const d = document.createElement('div'); d.className = 'tnps-screen';
@@ -768,6 +927,7 @@ function showScreen(id, btn) {
 
 eRender(0);
 cRender(0);
+gRender(0);
 </script>
 </body>
 </html>

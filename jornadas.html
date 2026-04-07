@@ -221,9 +221,11 @@
 <div class="tabs">
   <button class="tab on" onclick="sw('s1a',this)">1. CAQ &rarr; Encerrar (Cliente)</button>
   <button class="tab" onclick="sw('s1b',this)">2. CAQ &rarr; D&uacute;vidas (Cliente)</button>
-  <button class="tab" onclick="sw('s2',this)">3. Pushes (Cliente)</button>
-  <button class="tab" onclick="sw('s4a',this)">4. Agente &rarr; Encerrar (Shuffle)</button>
-  <button class="tab" onclick="sw('s4b',this)">5. Agente &rarr; D&uacute;vidas (Shuffle)</button>
+  <button class="tab" onclick="sw('s1c',this)">3. CAQ Ignorada (Cliente)</button>
+  <button class="tab" onclick="sw('s2',this)">4. Pushes (Cliente)</button>
+  <button class="tab" onclick="sw('s4a',this)">5. Agente &rarr; Encerrar (Shuffle)</button>
+  <button class="tab" onclick="sw('s4b',this)">6. Agente &rarr; D&uacute;vidas (Shuffle)</button>
+  <button class="tab" onclick="sw('s4c',this)">7. Agente &rarr; CAQ Ignorada (Shuffle)</button>
 </div>
 
 <!-- S1a: CAQ → ENCERRAR (CLIENTE) -->
@@ -256,6 +258,23 @@
       <div class="ph-topbar"><span class="ph-close">&#10005;</span><span class="ph-title">Chat</span><span class="ph-title-spacer"></span></div>
       <div class="ph-body" id="s1bb"></div>
       <div class="ph-input" id="s1binp"><input type="text" class="ph-input-field" id="s1bi" placeholder="Digite sua mensagem..."><button class="ph-input-send" id="s1bbtn"><svg viewBox="0 0 24 24" fill="none" stroke="#820AD1" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></button></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S1c: CAQ IGNORADA (CLIENTE) -->
+<div class="scr" id="s1c">
+  <div class="sc-title">CAQ Ignorada (Vis&atilde;o Cliente)</div>
+  <div class="sc-desc">Cliente n&atilde;o clica na CAQ &mdash; envia nova mensagem diretamente &rarr; conversa continua normalmente</div>
+  <div class="nav"><button class="nav-btn" id="s1cp" onclick="n1c(-1)" disabled>&#8592;</button><span class="nav-info" id="s1cl"></span><button class="nav-btn" id="s1cn" onclick="n1c(1)">&#8594;</button></div>
+  <div class="nav-sub" id="s1cs"></div><div class="dots" id="s1cd"></div>
+  <div class="row"><div>
+    <div class="badge"><span class="bc">&#128241; Cliente &mdash; App Nubank</span></div>
+    <div class="ph" id="s1cph">
+      <div class="ph-statusbar"><span class="ph-statusbar-time" id="s1ct">15:00</span><div class="ph-statusbar-icons"><div class="ph-signal"><div class="ph-signal-bar" style="height:4px"></div><div class="ph-signal-bar" style="height:6px"></div><div class="ph-signal-bar" style="height:8px"></div><div class="ph-signal-bar" style="height:10px"></div></div><div class="ph-battery"><div class="ph-battery-fill"></div></div></div></div>
+      <div class="ph-topbar"><span class="ph-close">&#10005;</span><span class="ph-title">Chat</span><span class="ph-title-spacer"></span></div>
+      <div class="ph-body" id="s1cb"></div>
+      <div class="ph-input" id="s1cinp"><input type="text" class="ph-input-field" id="s1ci" placeholder="Digite sua mensagem..."><button class="ph-input-send" id="s1cbtn"><svg viewBox="0 0 24 24" fill="none" stroke="#820AD1" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></button></div>
     </div>
   </div></div>
 </div>
@@ -324,6 +343,32 @@
   </div></div>
 </div>
 
+<!-- S4c: AGENTE → CAQ IGNORADA (SHUFFLE) -->
+<div class="scr" id="s4c">
+  <div class="sc-title">Agente &rarr; CAQ Ignorada (Shuffle)</div>
+  <div class="sc-desc">Cliente ignora a CAQ e envia nova mensagem &rarr; Chat continua normalmente na vis&atilde;o do agente</div>
+  <div class="nav"><button class="nav-btn" id="s4cp" onclick="n4c(-1)" disabled>&#8592;</button><span class="nav-info" id="s4cl"></span><button class="nav-btn" id="s4cn" onclick="n4c(1)">&#8594;</button></div>
+  <div class="nav-sub" id="s4cs"></div><div class="dots" id="s4cd"></div>
+  <div class="row"><div>
+    <div class="badge"><span class="ba">&#128187; Agente &mdash; Shuffle</span></div>
+    <div class="sf">
+      <div class="sf-hdr"><span class="sf-logo">Shuffle</span><div class="sf-icons"><div class="sf-ic">&#128203;</div><div class="sf-ic">&#8595;</div><div class="sf-ic">&#10005;</div></div></div>
+      <div class="sf-jb" id="s4cjb">
+        <span class="sf-jb-name">Maria da Silva</span>
+        <span class="sf-jb-badge active" id="s4cbadge">&#9679; Ativo</span>
+        <span class="sf-jb-queue">Cart&atilde;o de Cr&eacute;dito &middot; Human</span>
+        <button class="sf-jb-btn skip">Pular</button>
+        <button class="sf-jb-btn finish" id="s4cfin">Encerrar</button>
+      </div>
+      <div class="sf-chat">
+        <div class="sf-ch"><h4>Chat &mdash; Maria da Silva</h4><span class="jid">job:a7c3f2e1</span></div>
+        <div class="sf-msgs" id="s4cm"></div>
+        <div class="sf-in"><input type="text" id="s4ci" placeholder="Enviar mensagem..."><button class="sf-in-btn" id="s4cibtn">&#10148;</button></div>
+      </div>
+    </div>
+  </div></div>
+</div>
+
 <script>
 function sw(id,btn){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));document.getElementById(id).classList.add('on');btn.classList.add('on');}
 function mkDots(el,n,i){let h='';for(let j=0;j<n;j++)h+=`<div class="dot${j===i?' on':''}"></div>`;el.innerHTML=h;}
@@ -337,6 +382,7 @@ function caqMsg(t){return agentMsg('Precisa de mais alguma informa\u00e7\u00e3o?
 function caqBtns(){return `<div class="pm-caq-btns"><button class="pm-caq-btn duvidas">Ainda tenho d\u00favidas</button><button class="pm-caq-btn encerrar">Encerrar o atendimento</button></div>`;}
 function caqBtnsEnd(){return `<div class="pm-caq-btns"><button class="pm-caq-btn duvidas disabled">Ainda tenho d\u00favidas</button><button class="pm-caq-btn encerrar pressed">Encerrar o atendimento</button></div>`;}
 function caqBtnsCont(){return `<div class="pm-caq-btns"><button class="pm-caq-btn duvidas" style="background:#820AD1;color:white">Ainda tenho d\u00favidas</button><button class="pm-caq-btn encerrar disabled">Encerrar o atendimento</button></div>`;}
+function caqBtnsIgnored(){return `<div class="pm-caq-btns"><button class="pm-caq-btn duvidas disabled">Ainda tenho d\u00favidas</button><button class="pm-caq-btn encerrar disabled">Encerrar o atendimento</button></div>`;}
 function farewellMsg(t){return agentMsg('Esperamos ter te ajudado!\n\nEm alguns minutos, voc\u00ea receber\u00e1 uma notifica\u00e7\u00e3o para deixar sua opini\u00e3o sobre o nosso atendimento.',t);}
 function systemMsg(t){return `<div class="pm-system"><div class="pm-system-divider"></div><div class="pm-system-content"><div class="pm-system-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(0,0,0,0.64)" stroke-width="1.5"/><path d="M12 8v4" stroke="rgba(0,0,0,0.64)" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="rgba(0,0,0,0.64)"/></svg></div><div class="pm-system-text">Se ainda precisar de ajuda, basta mandar uma nova mensagem.</div></div><div class="pm-system-time">${t}</div><div class="pm-system-divider"></div></div>`;}
 function ackMsg(t){return agentMsg('Escreva em poucas palavras qual \u00e9 a sua d\u00favida para continuar o seu atendimento.',t);}
@@ -401,6 +447,18 @@ let i1b=0;
 function r1b(i){const d=D1b[i];document.getElementById('s1bl').textContent='Etapa '+d.l;document.getElementById('s1bs').textContent=d.s;document.getElementById('s1bt').textContent=d.t;document.getElementById('s1bb').innerHTML=d.b;document.getElementById('s1bi').disabled=!d.en;document.getElementById('s1bbtn').style.opacity=d.en?'1':'0.3';document.getElementById('s1bp').disabled=i===0;document.getElementById('s1bn').disabled=i===D1b.length-1;mkDots(document.getElementById('s1bd'),D1b.length,i);scroll('s1bb');}
 function n1b(d){i1b=Math.max(0,Math.min(D1b.length-1,i1b+d));r1b(i1b);}
 
+/* ========== S1c: CAQ IGNORADA (CLIENTE) ========== */
+const D1c=[
+  {l:'1/5',s:'Chat ativo \u2014 conversa com agente humano',t:'15:06',b:`<div class="ph-body-inner">${agentMsg('Ol\u00e1! Como posso te ajudar?','15:00')}${clientMsg('Oi, gostaria de saber a data de vencimento da fatura','15:00')}${agentMsg('A data de vencimento \u00e9 dia 15 de cada m\u00eas.','15:02')}${agentMsg('Para alterar, v\u00e1 no app em Cart\u00e3o de Cr\u00e9dito > Ajustar data.','15:04')}${clientMsg('Ah entendi, muito obrigada!','15:05')}${agentMsg('De nada! Mais alguma d\u00favida?','15:06')}</div>`,en:1},
+  {l:'2/5',s:'CAQ enviada automaticamente (1 min inatividade)',t:'15:07',b:`<div class="ph-body-inner">${agentMsg('De nada! Mais alguma d\u00favida?','15:06')}${caqMsg('15:07')}${caqBtns()}</div>`,en:1},
+  {l:'3/5',s:'Cliente ignora a CAQ e envia nova mensagem diretamente',t:'15:09',b:`<div class="ph-body-inner">${agentMsg('De nada! Mais alguma d\u00favida?','15:06')}${caqMsg('15:07')}${caqBtnsIgnored()}${clientMsg('Ah, mais uma coisa: consigo gerar um boleto da fatura?','15:09')}</div>`,en:1},
+  {l:'4/5',s:'Agente responde \u2014 conversa continua normalmente',t:'15:11',b:`<div class="ph-body-inner">${caqMsg('15:07')}${caqBtnsIgnored()}${clientMsg('Ah, mais uma coisa: consigo gerar um boleto da fatura?','15:09')}${agentMsg('Sim! V\u00e1 em Cart\u00e3o de Cr\u00e9dito > Pagar Fatura > Boleto. Ele ser\u00e1 gerado automaticamente.','15:10')}${clientMsg('Perfeito, consegui! Obrigada pela ajuda!','15:11')}</div>`,en:1},
+  {l:'5/5',s:'Nova CAQ (#2) enviada ap\u00f3s inatividade \u2014 ciclo se repete',t:'15:12',b:`<div class="ph-body-inner">${clientMsg('Perfeito, consegui! Obrigada pela ajuda!','15:11')}${agentMsg('De nada, Maria! Qualquer d\u00favida, estou aqui.','15:11')}${caqMsg('15:12')}${caqBtns()}</div>`,en:1},
+];
+let i1c=0;
+function r1c(i){const d=D1c[i];document.getElementById('s1cl').textContent='Etapa '+d.l;document.getElementById('s1cs').textContent=d.s;document.getElementById('s1ct').textContent=d.t;document.getElementById('s1cb').innerHTML=d.b;document.getElementById('s1ci').disabled=!d.en;document.getElementById('s1cbtn').style.opacity=d.en?'1':'0.3';document.getElementById('s1cp').disabled=i===0;document.getElementById('s1cn').disabled=i===D1c.length-1;mkDots(document.getElementById('s1cd'),D1c.length,i);scroll('s1cb');}
+function n1c(d){i1c=Math.max(0,Math.min(D1c.length-1,i1c+d));r1c(i1c);}
+
 /* ========== S2: PUSHES ========== */
 const D2=[
   {l:'1/3',s:'Push YCACS \u2014 enviada junto com a CAQ',b:`<div class="lock"><div class="lock-time">15:07</div><div class="lock-date">Quarta-feira, 19 de mar\u00e7o</div><div class="push"><div class="push-icon">Nu</div><div class="push-body"><h5>Maria, ainda precisa de ajuda?</h5><p>Se voce ainda estiver com alguma duvida, clique aqui para continuar o atendimento.</p><div class="push-time">agora</div></div></div></div>`},
@@ -440,8 +498,22 @@ const badge=document.getElementById('s4bbadge');badge.className='sf-jb-badge '+d
 document.getElementById('s4bfin').disabled=d.jb==='closed';document.getElementById('s4bi').disabled=!d.inE;document.getElementById('s4bibtn').disabled=!d.inE;document.getElementById('s4bi').placeholder=d.inE?'Enviar mensagem...':'Chat encerrado';document.getElementById('s4bp').disabled=i===0;document.getElementById('s4bn').disabled=i===D4b.length-1;mkDots(document.getElementById('s4bd'),D4b.length,i);scroll('s4bm');}
 function n4b(d){i4b=Math.max(0,Math.min(D4b.length-1,i4b+d));r4b(i4b);}
 
+/* ========== S4c: AGENTE → CAQ IGNORADA (SHUFFLE) ========== */
+const D4c=[
+  {l:'1/5',s:'Chat ativo \u2014 agente atendendo cliente',m:CONV_SF,jb:'active',jt:'&#9679; Ativo',inE:1},
+  {l:'2/5',s:'CAQ enviada automaticamente (1 min inatividade)',m:CONV_SF+caqSF('15:07'),jb:'active',jt:'&#9679; Ativo',inE:1},
+  {l:'3/5',s:'Cliente ignora a CAQ e envia nova mensagem diretamente',m:`<div class="am-author">Ana Souza</div><div class="am"><div class="am-body">De nada! A alteracao so vale a partir da proxima fatura. Mais alguma duvida?</div><div class="am-ts">15:06</div></div>${caqSF('15:07')}${custReply('Ah, mais uma coisa: consigo gerar um boleto da fatura?','15:09')}`,jb:'active',jt:'&#9679; Ativo',inE:1},
+  {l:'4/5',s:'Agente responde \u2014 conversa continua normalmente',m:`${caqSF('15:07')}${custReply('Ah, mais uma coisa: consigo gerar um boleto da fatura?','15:09')}<div class="am-author">Ana Souza</div><div class="am"><div class="am-body">Sim! Va em Cartao de Credito > Pagar Fatura > Boleto. Sera gerado automaticamente.</div><div class="am-ts">15:10</div></div><div class="cm-author">Maria da Silva</div><div class="cm"><div class="cm-body">Perfeito, consegui! Obrigada!</div><div class="cm-ts">15:11</div></div>`,jb:'active',jt:'&#9679; Ativo',inE:1},
+  {l:'5/5',s:'Nova CAQ (#2) enviada ap\u00f3s inatividade \u2014 ciclo se repete',m:`<div class="cm"><div class="cm-body">Perfeito, consegui! Obrigada!</div><div class="cm-ts">15:11</div></div><div class="am-author">Ana Souza</div><div class="am"><div class="am-body">De nada, Maria! Qualquer duvida, estou aqui.</div><div class="am-ts">15:11</div></div>${caqSF('15:12')}`,jb:'active',jt:'&#9679; Ativo',inE:1},
+];
+let i4c=0;
+function r4c(i){const d=D4c[i];document.getElementById('s4cl').textContent='Etapa '+d.l;document.getElementById('s4cs').textContent=d.s;document.getElementById('s4cm').innerHTML=d.m;
+const badge=document.getElementById('s4cbadge');badge.className='sf-jb-badge '+d.jb;badge.innerHTML=d.jt;
+document.getElementById('s4cfin').disabled=d.jb==='closed';document.getElementById('s4ci').disabled=!d.inE;document.getElementById('s4cibtn').disabled=!d.inE;document.getElementById('s4ci').placeholder=d.inE?'Enviar mensagem...':'Chat encerrado';document.getElementById('s4cp').disabled=i===0;document.getElementById('s4cn').disabled=i===D4c.length-1;mkDots(document.getElementById('s4cd'),D4c.length,i);scroll('s4cm');}
+function n4c(d){i4c=Math.max(0,Math.min(D4c.length-1,i4c+d));r4c(i4c);}
+
 /* Init all tabs */
-r1a(0);r1b(0);r2(0);r4a(0);r4b(0);
+r1a(0);r1b(0);r1c(0);r2(0);r4a(0);r4b(0);r4c(0);
 </script>
 </body>
 </html>
